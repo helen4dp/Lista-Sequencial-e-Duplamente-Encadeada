@@ -1,1 +1,1 @@
-# Lista-Duplamente-Encadeada
+# Lista-Sequencial-e-Duplamente-Encadeada
