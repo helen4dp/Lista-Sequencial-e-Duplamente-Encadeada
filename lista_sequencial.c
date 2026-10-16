@@ -1,16 +1,50 @@
-#define MAX 50
+#include "ListaComCursor.h"
 #include<stdlib.h>
 
-typedef struct lista_cursor {
+struct lista_cursor {
     int quantidade;
     int p_cursor;
-    int dados[MAX];
-} ListaCursor;
+    int *dados;
+    int cap;                                                        // Adicionando a variavel capacidade
+};
+
+static int garante_capacidade(ListaCursor *l){                     // Função para garantir que o vetor suporte quantas entradas forem necessárias
+    if (!l) {return 0;}                                            // Verificando se a lista foi criada
+    if(l->quantidade < l->cap){return 1;}                          // verificando se já existe espaço
+
+    // Alocando espaco:
+
+    // Caso 1) Os dados ainda não foram inicializados
+    if(l->cap == 0){
+
+        l->dados = malloc(8*sizeof(*l->dados));
+		if (!l->dados) {return 0;}                               // erro
+
+        l->cap = 8;
+    }
+
+    // Caso 2) Os dados já foram inicializados, dobrando a capacidade:
+    else {
+        int nova_cap = 2*l->cap;
+        int *novo = realloc(l->dados, nova_cap * sizeof(*l->dados));
+
+        if(!novo){return 0;}                                                    // Verificando se deu certo
+
+        l->dados = novo;
+        l->cap = nova_cap;
+    }
+
+    // tudo certo, há espaço para inserções:
+    return 1;
+}
+
 
 ListaCursor* criar_lista(void){
     ListaCursor *l = malloc(sizeof(ListaCursor));
     if(l == NULL) return NULL;
 
+    l->dados = NULL;                                                // inicializando dados
+    l->cap = 0;                                                     // inicializando cap
     l->quantidade = 0;
     l->p_cursor = 0;
 
@@ -20,8 +54,8 @@ ListaCursor* criar_lista(void){
 void destruir_lista(ListaCursor* l){
     if(l == NULL) return;
 
+    free(l->dados);                                                 // liberando dados
     free(l);
-    l = NULL;
 
     return;
 }
@@ -88,27 +122,31 @@ int mover_para_indice(ListaCursor* l, int indice){
 
     if(l == NULL) return -1;
 
-    if(l->quantidade >= MAX) return 0;
-    int posicao_anterior = l->p_cursor;
+    if (garante_capacidade(l) != 1){return 0;}                         // garantindo que o vetor term capacidade para nova alocação
 
-    if(posicao_anterior < 0) posicao_anterior = 0;
+    // Caso 1) Lista vazia
+    if(l->quantidade == 0){
+        l->dados[0] = valor;
+        l->p_cursor = 0;                                            // o cursor fica no novo elemento, que é unico
+        l->quantidade = 1;
 
-
-    for(int i = l->quantidade; i > posicao_anterior; i--){
-        l->dados[i] = l->dados[i - 1];
+        return 1;
     }
-    l->dados[posicao_anterior] = valor;
-    l->p_cursor++;
+
+    for(int i = l->quantidade; i > l->p_cursor; i--) { l->dados[i] = l->dados[i - 1];}
+
+    l->dados[l->p_cursor] = valor;
+    l->p_cursor++;                                          // o elemento antigo do cursor foi empurrado para a direita
     l->quantidade++;
 
     return 1;
-
  }
 
 int inserir_depois(ListaCursor* l, int valor){
     if(l == NULL) return -1;
 
-    if(l->quantidade >= MAX) return 0;
+    if (garante_capacidade(l) != 1){return 0;}                         // garantindo que o vetor term capacidade para nova alocação
+    
     int posicao_posterior = l->p_cursor + 1;
 
     if(posicao_posterior > l->quantidade) posicao_posterior = l->quantidade;

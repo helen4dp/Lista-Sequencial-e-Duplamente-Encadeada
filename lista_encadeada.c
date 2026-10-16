@@ -2,23 +2,22 @@
 #include <stdlib.h>
 #include "ListaComCursor.h"
 
-struct lista_cursor
-{
-    int qtd;
-    Node *head;
-    Node *butt;                                             // AHAHHAHAHA
-    Node *cursor;
-
-};
-
 typedef struct node
 {
-    struct lista_cursor *next;
-    struct lista_cursor *previous;
+    struct node *next;
+    struct node *previous;
     int data;
 
 } Node;
 
+struct lista_cursor
+{
+    int qtd;
+    Node *head;
+    Node *butt;                                             
+    Node *cursor;
+
+};
 
 
 
@@ -26,10 +25,12 @@ typedef struct node
 ListaCursor *criar_lista(void){
     ListaCursor *l = malloc(sizeof(ListaCursor));                           // Alocar espaço na lista
 
-    if(!l){return NULL}                                                     // Verificar se o espaço foi alocado 
+    if(!l){return 0;}                                                     // Verificar se o espaço foi alocado 
 
     l->head = NULL;
+    l->butt = NULL;
     l->qtd = 0;                                                             // Lista criada porém vazia
+    l->cursor = NULL;
 
     // Sucesso
     return l;
@@ -37,7 +38,9 @@ ListaCursor *criar_lista(void){
 }
 
 // void destruir_lista(ListaCursor* l);
-ListaCursor *destruir_lista(ListaCursor *l){
+void destruir_lista(ListaCursor *l){
+    if(!l){return;}
+
     Node *temp;                                                              // poteiro temporario
 
     temp = l->head;
@@ -49,23 +52,23 @@ ListaCursor *destruir_lista(ListaCursor *l){
        free(rem);
     }
 
-    l = NULL;
+    free(l);
 }
 
 
 // void mover_inicio(ListaCursor* l);
-ListaCursor *mover_inicio(ListaCursor *l){
+void mover_inicio(ListaCursor *l){
     l->cursor = l->head;
 }
 
 // void mover_fim(ListaCursor* l);
-ListaCursor *mover_fim(ListaCursor *l){
+void mover_fim(ListaCursor *l){
     l->cursor = l->butt;
 }
 
 
 // int avancar_cursor(ListaCursor* l);
-ListaCursor *avancar_cursor(ListaCursor *l){
+int avancar_cursor(ListaCursor *l){
     if(l->head == NULL){return 0;}                              // checando se a lista está vazia
 
     Node *temp = l->cursor;
@@ -77,7 +80,8 @@ ListaCursor *avancar_cursor(ListaCursor *l){
 
 
 // int retroceder_cursor(ListaCursor* l);
-ListaCursor *retroceder_cursor(ListaCursor *l){
+int retroceder_cursor(ListaCursor *l){
+    if(l == NULL){return 0;}                                              // checando se a lista está vazia
     if (l->cursor == l->head){return 0;}                        // checando se está no inicio da lista
     if(l->head == NULL){return 0;}                              // checando se a lista está vazia
 
@@ -88,7 +92,7 @@ ListaCursor *retroceder_cursor(ListaCursor *l){
 
 
 // int mover_para_indice(ListaCursor* l, int indice);
-ListaCursor *mover_para_indice(ListaCursor *l, int indice){
+int mover_para_indice(ListaCursor *l, int indice){
     if(l->head == NULL){return 0;}                                  // checando se a lista está vazia
     if(indice < 0 || indice >= l->qtd){return 0;}                   // checando se o indice é válido
 
@@ -104,7 +108,10 @@ ListaCursor *mover_para_indice(ListaCursor *l, int indice){
 // Retorna 1 se obteve o valor; 0 se a lista esta vazia.
 // Em caso de retorno 0, *valor_saida permanece inalterado.
 int obter_atual(ListaCursor* l, int* valor_saida){
-    if(l == NULL) return -1;
+
+    if(l == NULL || valor_saida == NULL) {return 0;}
+    if(l->cursor == NULL) return 0;
+
     Node *atual;
     atual = l->cursor;
     *valor_saida = atual->data;
@@ -114,10 +121,10 @@ int obter_atual(ListaCursor* l, int* valor_saida){
 
  // Insere antes do cursor
 int inserir_antes(ListaCursor* l, int valor){
-    if(l == NULL) return -1;
+    if(l == NULL) return 0;
     
     Node *novo = malloc(sizeof(Node));
-    if(novo == NULL) return -1;
+    if(novo == NULL) return 0;
     novo->data = valor;
 
     // Caso lista vazia
@@ -155,10 +162,10 @@ int inserir_antes(ListaCursor* l, int valor){
 
 // Insere depois do cursor
 int inserir_depois(ListaCursor* l, int valor){
-    if(l == NULL) return -1;
+    if(l == NULL) return 0;
 
     Node *novo = malloc(sizeof(Node));
-    if(novo == NULL) return -1;
+    if(novo == NULL) return 0;
     novo->data = valor;
 
 
@@ -197,13 +204,14 @@ int inserir_depois(ListaCursor* l, int valor){
 
 // Retorna tamanho da lista;
 int tamanho_lista(ListaCursor* l){
-    if(l == NULL) return -1;
+    if(l == NULL) return 0;
     return l->qtd;
 }
 
 // Remove o elemento atual
 int remover_atual(ListaCursor* l){
-    if(l == NULL) return -1;
+    if(l == NULL) return 0;
+    if(l->cursor == NULL) return 0; 
 
     Node *atual = l->cursor;
     Node *proximo = atual->next;
@@ -232,11 +240,8 @@ int remover_atual(ListaCursor* l){
     }
 
     free(atual);
-    atual = NULL;
     l->qtd--;
 
     return 1;
 
 }  
-
-
